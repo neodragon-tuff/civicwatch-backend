@@ -1,4 +1,6 @@
 const express = require('express');
+const Parser = require('rss-parser');
+const parser = new Parser();
 const cors = require('cors');
 const fetch = require('node-fetch');
 require('dotenv').config();
@@ -92,7 +94,37 @@ app.get('/api/prices', async (req, res) => {
     res.json({ message: 'Price data temporarily unavailable', updated: new Date().toISOString() });
   }
 });
+// ── PARLIAMENT BILLS (PRS India RSS) ──
+app.get('/api/parliament', async (req, res) => {
+  try {
+    const feed = await parser.parseURL('https://prsindia.org/rss/bills');
+    const bills = feed.items.slice(0, 10).map(item => ({
+      title: item.title,
+      date: item.pubDate,
+      link: item.link,
+      desc: item.contentSnippet
+    }));
+    res.json({ bills, updated: new Date().toISOString() });
+  } catch(err) {
+    res.status(500).json({ error: 'Parliament feed failed', message: err.message });
+  }
+});
 
+// ── LIVE ACTIVITY FEED (Parliament + News RSS) ──
+app.get('/api/activity', async (req, res) => {
+  try {
+    const feed = await parser.parseURL('https://prsindia.org/rss/bills');
+    const items = feed.items.slice(0, 5).map(i => ({
+      text: i.title,
+      time: new Date(i.pubDate).toLocaleDateString('en-IN'),
+      color: '#FF9933',
+      link: i.link
+    }));
+    res.json({ items, updated: new Date().toISOString() });
+  } catch(err) {
+    res.status(500).json({ error: 'Activity feed failed', message: err.message });
+  }
+});
 // ── HEALTH CHECK ──
 app.get('/', (req, res) => {
   res.json({
