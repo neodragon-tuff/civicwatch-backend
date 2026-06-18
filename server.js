@@ -113,7 +113,7 @@ app.get('/api/parliament', async (req, res) => {
 // ── LIVE ACTIVITY FEED (Parliament + News RSS) ──
 app.get('/api/activity', async (req, res) => {
   try {
-    const feed = await parser.parseURL('https://prsindia.org/rss/bills');
+    const feed = await parser.parseURL('https://feeds.feedburner.com/ndtvnews-india-news');
     const items = feed.items.slice(0, 5).map(i => ({
       text: i.title,
       time: new Date(i.pubDate).toLocaleDateString('en-IN'),
